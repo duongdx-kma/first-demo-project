@@ -5,6 +5,11 @@ pipeline {
         SONAR_URL = 'http://sonarqube-server:9000'
         CODEDEPLOY_APPLICATION = 'my-app'
         CODEDEPLOY_DEPLOYMENT_GROUP = 'deploy-group'
+        TOMCAT_USER = 'ec2-user'  // Adjust as per your setup
+        TOMCAT_IP = '10.100.4.66'
+        TOMCAT_PORT = '8080'
+        TOMCAT_WEBAPPS_DIR = '/opt/tomcat/latest/webapps'
+        SSH_KEY = credentials('tomcat-ssh-key')  // Jenkins SSH private key credential
     }
     stages {
         stage('Checkout') {
@@ -30,6 +35,30 @@ pipeline {
             agent { label 'maven-instance' }
             steps {
                 sh 'mvn test'
+            }
+        }
+
+        stage('Deploy to Tomcat') {
+            agent { label 'master' }
+            steps {
+                script {
+                    // Clean up Tomcat webapps directory (remove all except ROOT)
+                    sh """
+                        ssh -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                        'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}/*'
+                    """
+
+                    // Deploy the WAR file as ROOT.war
+                    sh """
+                        scp -i ${SSH_KEY} target/*.war ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.war
+                    """
+                    
+                    // Optionally restart Tomcat
+                    sh """
+                        ssh -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                        'sudo systemctl restart tomcat'
+                    """
+                }
             }
         }
     }
