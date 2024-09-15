@@ -41,22 +41,22 @@ pipeline {
         stage('Deploy to Tomcat') {
             agent { label 'built-in' }
             steps {
-                withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
+                withCredentials([sshUserPrivateKey(credentialsId: "${SSH_KEY_ID}", keyFileVariable: 'SSH_KEY_FILE')]) {
                     script {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
                         sh """
-                            ssh -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                            ssh -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
                             'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}/*'
                         """
 
                         // Deploy the WAR file as ROOT.jar
                         sh """
-                            scp -i ${SSH_KEY} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.jar
+                            scp -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.jar
                         """
 
                         // Optionally restart Tomcat
                         sh """
-                            ssh -i ${SSH_KEY} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                            ssh -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
                             'sudo systemctl restart tomcat'
                         """
                     }
