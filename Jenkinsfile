@@ -51,9 +51,15 @@ pipeline {
                             'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}/*'
                         """
 
-                        // Deploy the WAR file as ROOT.jar
+                        // Deploy the JAR file to  /home/ec2-user/ROOT.jar
                         sh """
-                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.jar
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:/home/$TOMCAT_USER/ROOT.jar
+                        """
+
+                        // Deploy the JAR file to /opt/tomcat/latest/webapps/ROOT.jar
+                        sh """
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                            'sudo cp /home/$TOMCAT_USER/ROOT.jar $TOMCAT_WEBAPPS_DIR/ROOT.jar'
                         """
 
                         // Optionally restart Tomcat
