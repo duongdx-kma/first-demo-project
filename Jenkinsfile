@@ -9,7 +9,7 @@ pipeline {
         TOMCAT_IP = '10.100.4.66'
         TOMCAT_PORT = '8080'
         TOMCAT_WEBAPPS_DIR = '/opt/tomcat/latest/webapps'
-        SSH_KEY = credentials('tomcat-ssh-key')  // Jenkins SSH private key credential
+        SSH_KEY_ID = 'tomcat-ssh-key'  // Jenkins SSH private key credential ID
     }
     stages {
         stage('Checkout') {
@@ -41,7 +41,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             agent { label 'master' }
             steps {
-                withCredentials([file(credentialsId: 'tomcat-ssh-key', variable: 'SSH_KEY')]) {
+                withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                     script {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
                         sh """
