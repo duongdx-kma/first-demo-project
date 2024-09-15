@@ -39,6 +39,7 @@ pipeline {
         }
 
         stage('Deploy to Tomcat') {
+            agent { label 'built-in' }
             steps {
                 withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                     script {
