@@ -26,8 +26,8 @@ pipeline {
             post {
                 success {
                     echo 'Now Archiving...'
-                    archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
-                    stash name: 'app-jar', includes: '**/target/*.jar' // save the artifact for Deploy State
+                    archiveArtifacts artifacts: '**/target/*.war', fingerprint: true
+                    stash name: 'app-war', includes: '**/target/*.war' // save the artifact for Deploy State
                 }
             }
         }
@@ -42,7 +42,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             agent { label 'built-in' }
             steps {
-                unstash 'app-jar' // get the artifact from Buil stage
+                unstash 'app-war' // get the artifact from Buil stage
                 withCredentials([sshUserPrivateKey(credentialsId: "${SSH_KEY_ID}", keyFileVariable: 'SSH_KEY_FILE')]) {
                     script {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
@@ -51,15 +51,15 @@ pipeline {
                             'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}'
                         """
 
-                        // Deploy the JAR file to  /home/ec2-user/ROOT.jar
+                        // Deploy the WAR file to  /home/ec2-user/ROOT.war
                         sh """
-                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:/home/$TOMCAT_USER/ROOT.jar
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} target/*.war ${TOMCAT_USER}@${TOMCAT_IP}:/home/$TOMCAT_USER/ROOT.war
                         """
 
-                        // Deploy the JAR file to /opt/tomcat/latest/webapps/ROOT.jar
+                        // Deploy the WAR file to /opt/tomcat/latest/webapps/ROOT.war
                         sh """
                             ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
-                            'sudo cp /home/$TOMCAT_USER/ROOT.jar $TOMCAT_WEBAPPS_DIR/ROOT.jar'
+                            'sudo cp /home/$TOMCAT_USER/ROOT.war $TOMCAT_WEBAPPS_DIR/ROOT.war'
                         """
 
                         // Optionally restart Tomcat
