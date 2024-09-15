@@ -48,7 +48,7 @@ pipeline {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
                         sh """
                             ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
-                            'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}/*'
+                            'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}'
                         """
 
                         // Deploy the JAR file to  /home/ec2-user/ROOT.jar
