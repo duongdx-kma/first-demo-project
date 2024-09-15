@@ -39,7 +39,6 @@ pipeline {
         }
 
         stage('Deploy to Tomcat') {
-            agent { label 'master' }
             steps {
                 withCredentials([file(credentialsId: "${SSH_KEY_ID}", variable: 'SSH_KEY')]) {
                     script {
