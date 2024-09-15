@@ -45,18 +45,18 @@ pipeline {
                     script {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
                         sh """
-                            ssh -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
                             'sudo rm -rf ${TOMCAT_WEBAPPS_DIR}/{docs,examples,host-manager,manager,ROOT}/*'
                         """
 
                         // Deploy the WAR file as ROOT.jar
                         sh """
-                            scp -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.jar
+                            scp -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} target/*.jar ${TOMCAT_USER}@${TOMCAT_IP}:${TOMCAT_WEBAPPS_DIR}/ROOT.jar
                         """
 
                         // Optionally restart Tomcat
                         sh """
-                            ssh -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
+                            ssh -o StrictHostKeyChecking=no -i ${SSH_KEY_FILE} ${TOMCAT_USER}@${TOMCAT_IP} \\
                             'sudo systemctl restart tomcat'
                         """
                     }
