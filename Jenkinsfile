@@ -27,6 +27,7 @@ pipeline {
                 success {
                     echo 'Now Archiving...'
                     archiveArtifacts artifacts: '**/target/*.jar', fingerprint: true
+                    stash name: 'app-jar', includes: '**/target/*.jar' // save the artifact for Deploy State
                 }
             }
         }
@@ -41,6 +42,7 @@ pipeline {
         stage('Deploy to Tomcat') {
             agent { label 'built-in' }
             steps {
+                unstash 'app-jar' // get the artifact from Buil stage
                 withCredentials([sshUserPrivateKey(credentialsId: "${SSH_KEY_ID}", keyFileVariable: 'SSH_KEY_FILE')]) {
                     script {
                         // Clean up Tomcat webapps directory (remove all except ROOT)
